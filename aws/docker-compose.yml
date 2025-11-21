@@ -7,11 +7,14 @@ services:
       dockerfile: Dockerfile
     container_name: bitwise_backend
     restart: always
+    # Load environment variables from the backend folder if present
+    env_file:
+      - ../../bitwise-server/.env
     environment:
       NODE_ENV: production
       PORT: 3000
       HOST: 0.0.0.0
-      # Ensure these are set in your .env file
+      # Fallbacks if .env is missing or variables are not set
       DATABASE_URL: ${DATABASE_URL}
       DIRECT_URL: ${DIRECT_URL}
       JWT_SECRET: ${JWT_SECRET}
