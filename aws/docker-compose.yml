@@ -5,22 +5,21 @@ services:
     build:
       context: ../../bitwise-server
       dockerfile: Dockerfile
+    # ...existing code...
     container_name: bitwise_backend
     restart: always
-    # Load environment variables from the backend folder if present
+    # Load environment variables from .env file in this directory
+    # OR from the backend source directory if it exists
     env_file:
+      - .env
       - ../../bitwise-server/.env
     environment:
       NODE_ENV: production
       PORT: 3000
       HOST: 0.0.0.0
-      # Fallbacks if .env is missing or variables are not set
-      DATABASE_URL: ${DATABASE_URL}
-      DIRECT_URL: ${DIRECT_URL}
-      JWT_SECRET: ${JWT_SECRET}
-      FRONTEND_URL: ${FRONTEND_URL}
     ports:
       - "3000:3000"
+# ...existing code...
     networks:
       - bitwise_net
 

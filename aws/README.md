@@ -1,66 +1,70 @@
-# Bitwise Deployment Guide (AWS/EC2)
+# Bitwise Deployment (AWS EC2)
 
-This guide explains how to deploy the Bitwise application using the configuration in this directory.
+This directory contains the configuration to deploy the Bitwise application on AWS EC2 using Docker Compose.
 
-## 1. Prerequisites
+## 🚨 Critical Fix for "KeyError: 'ContainerConfig'"
 
-- **Docker & Docker Compose** installed on your EC2 instance.
-- **Git** installed.
-- **SSH Access** to your EC2 instance.
+If you see `KeyError: 'ContainerConfig'` when running `docker-compose`, it means your installed version of `docker-compose` (likely v1.29.x) is too old and incompatible with the Docker Engine on your EC2 instance.
 
-## 2. Deployment Steps
+**Solution: Use the new Docker Compose V2 plugin.**
 
-### Step 1: Clone the Repository
+1.  **Check if you have the new command:**
+    Try running:
+    ```bash
+    docker compose version
+    ```
+    *(Note the space between `docker` and `compose`, no hyphen)*.
 
-SSH into your EC2 instance and clone the main repository.
+2.  **If it works (shows v2.x.x):**
+    Use `docker compose` instead of `docker-compose` for all commands.
+    ```bash
+    docker compose up --build -d
+    ```
+
+3.  **If it says "command not found" or you need to install it:**
+    Run these commands to install the latest Docker Compose plugin:
+    ```bash
+    sudo apt-get update
+    sudo apt-get install -y docker-compose-plugin
+    ```
+    Then verify: `docker compose version`
+
+---
+
+## 🚀 Deployment Steps
+
+### 1. Prepare the Server
+Ensure your project structure on the server looks like this:
+```
+~/bitwise/
+├── bitwise-server/   (Backend code + .env)
+├── bitwise-ui/       (Frontend code + .env)
+└── deploy/
+    └── aws/
+        ├── docker-compose.yml
+        └── README.md
+```
+
+### 2. Environment Variables
+Since you mentioned you have envs in the repos:
+- Ensure `bitwise-server/.env` exists and has `DATABASE_URL`, `JWT_SECRET`, etc.
+- Ensure `bitwise-ui/.env` exists (if needed for build).
+
+### 3. Run the Application
+Navigate to this directory and run:
 
 ```bash
-git clone <your-repo-url> bitwise
-cd bitwise
+cd ~/bitwise/deploy/aws
+
+# Build and start containers (using V2 command)
+docker compose up --build -d
 ```
 
-### Step 2: Navigate to Deployment Directory
+### 4. Verify
+- **Backend Logs:** `docker compose logs -f backend`
+- **Frontend Logs:** `docker compose logs -f frontend`
 
-The deployment configuration is located in `deploy/aws`.
+## 🛠 Troubleshooting
 
-```bash
-cd deploy/aws
-```
-
-### Step 3: Configure Environment Variables
-
-Create a `.env` file in the `deploy/aws` directory.
-
-```bash
-nano .env
-```
-
-Paste your environment variables:
-
-```env
-NODE_ENV=production
-DATABASE_URL="postgresql://user:password@host:port/db"
-DIRECT_URL="postgresql://user:password@host:port/db"
-JWT_SECRET="your-secret-key"
-FRONTEND_URL="http://your-ec2-public-ip"
-```
-
-### Step 4: Start the Application
-
-Run Docker Compose from this directory. It is configured to look for the source code in the parent directories (`../../bitwise-server` and `../../bitwise-ui`).
-
-```bash
-docker-compose up --build -d
-```
-
-### Step 5: Verify
-
-- **Backend**: Running on port 3000.
-- **Frontend**: Running on port 80.
-
-Visit `http://your-ec2-public-ip` in your browser.
-
-## Troubleshooting
-
-- **Logs**: Check logs with `docker-compose logs -f`.
-- **Rebuild**: If you pull new code, run `docker-compose up --build -d` again.
+- **"permission denied"**: Add `sudo` before docker commands, or add your user to the docker group: `sudo usermod -aG docker $USER` (then logout and login).
+- **Frontend not connecting**: Ensure `FRONTEND_URL` in backend .env matches your EC2 IP/Domain, and your Frontend code points to the correct Backend URL.
