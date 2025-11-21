@@ -1,17 +1,12 @@
-version: '3.8'
-
 services:
   backend:
     build:
       context: ../../bitwise-server
       dockerfile: Dockerfile
-    # ...existing code...
     container_name: bitwise_backend
     restart: always
-    # Load environment variables from .env file in this directory
-    # OR from the backend source directory if it exists
+    # Load environment variables from the backend folder
     env_file:
-      - .env
       - ../../bitwise-server/.env
     environment:
       NODE_ENV: production
@@ -19,7 +14,6 @@ services:
       HOST: 0.0.0.0
     ports:
       - "3000:3000"
-# ...existing code...
     networks:
       - bitwise_net
 
