@@ -1,34 +1,75 @@
 services:
+  traefik:
+    image: "traefik:v2.10"
+    container_name: "traefik"
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      # REPLACE WITH YOUR EMAIL
+      - "--certificatesresolvers.myresolver.acme.email=valmykelcevenbolante@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+      # Dashboard port (optional, remove in production if not needed)
+      - "8080:8080"
+    volumes:
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - bitwise_net
+    restart: always
+
   backend:
     build:
-      context: ../../bitwise-server
+      context: ../../../bitwise-server
       dockerfile: Dockerfile
     container_name: bitwise_backend
     restart: always
     # Load environment variables from the backend folder
     env_file:
-      - ../../bitwise-server/.env
+      - ../../../bitwise-server/.env
     environment:
       NODE_ENV: production
       PORT: 3000
       HOST: 0.0.0.0
-    ports:
-      - "3000:3000"
     networks:
       - bitwise_net
+    labels:
+      - "traefik.enable=true"
+      # Route /api requests to backend
+      - "traefik.http.routers.backend.rule=Host(`bitwise.live`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.entrypoints=websecure"
+      - "traefik.http.routers.backend.tls.certresolver=myresolver"
+      - "traefik.http.services.backend.loadbalancer.server.port=3000"
 
   frontend:
     build:
-      context: ../../bitwise-ui
+      context: ../../../bitwise-ui
       dockerfile: Dockerfile
     container_name: bitwise_frontend
     restart: always
-    ports:
-      - "80:80"
     depends_on:
       - backend
     networks:
       - bitwise_net
+    labels:
+      - "traefik.enable=true"
+      # Route root requests to frontend
+      - "traefik.http.routers.frontend.rule=Host(`bitwise.live`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=myresolver"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+      # Redirect HTTP to HTTPS
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.frontend-http.rule=Host(`bitwise.live`)"
+      - "traefik.http.routers.frontend-http.entrypoints=web"
+      - "traefik.http.routers.frontend-http.middlewares=redirect-to-https"
 
 networks:
   bitwise_net:
