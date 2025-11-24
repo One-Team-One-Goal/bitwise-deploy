@@ -43,7 +43,7 @@ services:
     labels:
       - "traefik.enable=true"
       # Route /api requests to backend
-      - "traefik.http.routers.backend.rule=Host(`bitwise.live`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.rule=(Host(`bitwise.live`) || Host(`www.bitwise.live`)) && PathPrefix(`/api`)"
       - "traefik.http.routers.backend.entrypoints=websecure"
       - "traefik.http.routers.backend.tls.certresolver=myresolver"
       - "traefik.http.services.backend.loadbalancer.server.port=3000"
@@ -61,13 +61,13 @@ services:
     labels:
       - "traefik.enable=true"
       # Route root requests to frontend
-      - "traefik.http.routers.frontend.rule=Host(`bitwise.live`)"
+      - "traefik.http.routers.frontend.rule=Host(`bitwise.live`) || Host(`www.bitwise.live`)"
       - "traefik.http.routers.frontend.entrypoints=websecure"
       - "traefik.http.routers.frontend.tls.certresolver=myresolver"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
       # Redirect HTTP to HTTPS
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      - "traefik.http.routers.frontend-http.rule=Host(`bitwise.live`)"
+      - "traefik.http.routers.frontend-http.rule=Host(`bitwise.live`) || Host(`www.bitwise.live`)"
       - "traefik.http.routers.frontend-http.entrypoints=web"
       - "traefik.http.routers.frontend-http.middlewares=redirect-to-https"
 
