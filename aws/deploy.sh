@@ -4,10 +4,16 @@ set -e
 
 echo "🚀 Starting deployment process..."
 
-# Navigate to the script's directory
-cd "$(dirname "$0")"
+# Get the absolute path of the script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+echo "📂 Script directory: $SCRIPT_DIR"
 
-echo "📂 Current directory: $(pwd)"
+# Calculate the root directory (assuming script is in bitwise-deploy/aws)
+# We need to go up 2 levels: aws -> bitwise-deploy -> bitwise (root)
+ROOT_DIR="$SCRIPT_DIR/../.."
+
+cd "$ROOT_DIR"
+echo "📂 Working in root: $(pwd)"
 
 echo "⬇️  Pulling latest code from git..."
 
@@ -23,13 +29,6 @@ pull_repo() {
         echo "⚠️  Warning: Directory $dir not found. Skipping git pull."
     fi
 }
-
-# The script is at ~/bitwise/bitwise-deploy/aws/deploy.sh
-# We want to go to ~/bitwise
-ROOT_DIR="$(dirname "$0")/../.."
-
-cd "$ROOT_DIR"
-echo "📂 Working in root: $(pwd)"
 
 pull_repo "bitwise-deploy"
 pull_repo "bitwise-server"
