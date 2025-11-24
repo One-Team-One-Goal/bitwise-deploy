@@ -27,13 +27,13 @@ services:
 
   backend:
     build:
-      context: ../../../bitwise-server
+      context: ../../bitwise-server
       dockerfile: Dockerfile
     container_name: bitwise_backend
     restart: always
     # Load environment variables from the backend folder
     env_file:
-      - ../../../bitwise-server/.env
+      - ../../bitwise-server/.env
     environment:
       NODE_ENV: production
       PORT: 3000
@@ -50,7 +50,7 @@ services:
 
   frontend:
     build:
-      context: ../../../bitwise-ui
+      context: ../../bitwise-ui
       dockerfile: Dockerfile
     container_name: bitwise_frontend
     restart: always

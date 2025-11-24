@@ -4,7 +4,8 @@ set -e
 
 echo "🚀 Starting deployment process..."
 
-cd "$(dirname "$0")/../.."
+# Navigate to the script's directory
+cd "$(dirname "$0")"
 
 echo "📂 Current directory: $(pwd)"
 
@@ -23,9 +24,9 @@ pull_repo() {
     fi
 }
 
-# Assuming the script is running from ~/bitwise/bitwise-deploy/deploy/aws/deploy.sh
+# The script is at ~/bitwise/bitwise-deploy/aws/deploy.sh
 # We want to go to ~/bitwise
-ROOT_DIR="$(dirname "$0")/../../.."
+ROOT_DIR="$(dirname "$0")/../.."
 
 cd "$ROOT_DIR"
 echo "📂 Working in root: $(pwd)"
@@ -34,7 +35,7 @@ pull_repo "bitwise-deploy"
 pull_repo "bitwise-server"
 pull_repo "bitwise-ui"
 
-cd bitwise-deploy/deploy/aws
+cd bitwise-deploy/aws
 
 echo "🔄 Rebuilding and restarting containers..."
 if docker compose version >/dev/null 2>&1; then
