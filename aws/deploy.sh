@@ -41,7 +41,7 @@ if [ ! -f "./letsencrypt/acme.json" ]; then
     mkdir -p ./letsencrypt
     touch ./letsencrypt/acme.json
 fi
-chmod 600 ./letsencrypt/acme.json
+sudo chmod 600 ./letsencrypt/acme.json
 
 echo "🔄 Rebuilding and restarting containers..."
 if docker compose version >/dev/null 2>&1; then
