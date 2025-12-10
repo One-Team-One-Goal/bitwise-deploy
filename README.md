@@ -419,6 +419,61 @@ ls -la letsencrypt/acme.json
 5. **Monitoring**: Set up CloudWatch or equivalent for monitoring
 6. **Backups**: Regularly backup your database and environment files
 
+## Quick Reference
+
+### Essential Commands
+
+```bash
+# SSH to EC2
+ssh -i "your-key.pem" ubuntu@<ec2-ip>
+
+# Check running containers
+cd ~/bitwise/bitwise-deploy/deploy/aws
+docker compose ps
+
+# View all logs
+docker compose logs -f
+
+# View specific service logs
+docker compose logs -f backend
+docker compose logs -f frontend
+
+# Restart services
+docker compose restart
+
+# Deploy/Update
+./deploy.sh
+
+# Check disk space
+df -h
+
+# Clean up Docker resources
+docker image prune -af
+docker system prune -af
+```
+
+### Environment Variables
+
+**Backend (.env in bitwise-server/):**
+- `FRONTEND_URL` - Must be `https://bitwise.live` (or your domain)
+- `CORS_ALLOWED_ORIGINS` - Include both www and non-www domains
+- `DATABASE_URL` - Supabase connection with pooling
+- `GROQ_API_KEY` - AI service key
+
+**Frontend (.env in bitwise-ui/):**
+- `VITE_API_BASE_URL` - Must be `https://bitwise.live/api` (through Traefik)
+- `VITE_SUPABASE_URL` - Supabase project URL
+- `VITE_SUPABASE_ANON_KEY` - Supabase anonymous key
+
+### Troubleshooting Checklist
+
+1. ✅ Containers running: `docker compose ps`
+2. ✅ Check logs: `docker compose logs backend --tail=50`
+3. ✅ Test backend: `curl http://localhost/api`
+4. ✅ Verify SSL: `https://bitwise.live`
+5. ✅ Disk space: `df -h` (should be < 80%)
+6. ✅ GitHub secrets configured in repository settings
+
 ## Additional Resources
 
 - [AWS Deployment Guide](aws/README.md) - AWS-specific configuration
@@ -432,3 +487,7 @@ For deployment issues:
 2. Review application logs
 3. Verify GitHub Actions workflow runs
 4. Check EC2 instance health and resource usage
+
+## License
+
+This project is private and unlicensed.
