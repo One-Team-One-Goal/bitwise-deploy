@@ -43,14 +43,41 @@ if [ ! -f "./letsencrypt/acme.json" ]; then
 fi
 sudo chmod 600 ./letsencrypt/acme.json
 
-echo "🔄 Rebuilding and restarting containers..."
-if docker compose version >/dev/null 2>&1; then
-    docker compose up -d --build --remove-orphans
-else
-    docker-compose up -d --build --remove-orphans
-fi
+echo "🧹 Cleaning up old Docker resources..."
+docker image prune -af
+docker builder prune -f
 
-echo "🧹 Pruning unused docker images..."
+echo "🔄 Rebuilding and restarting containers (with retry logic)..."
+# Retry up to 3 times in case of network issues
+MAX_RETRIES=3
+RETRY_COUNT=0
+
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    echo "   Attempt $((RETRY_COUNT + 1)) of $MAX_RETRIES..."
+    
+    if docker compose version >/dev/null 2>&1; then
+        if docker compose up -d --build --remove-orphans; then
+            echo "✅ Deployment successful!"
+            break
+        fi
+    else
+        if docker-compose up -d --build --remove-orphans; then
+            echo "✅ Deployment successful!"
+            break
+        fi
+    fi
+    
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+    if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+        echo "⚠️  Build failed, retrying in 10 seconds..."
+        sleep 10
+    else
+        echo "❌ Deployment failed after $MAX_RETRIES attempts"
+        exit 1
+    fi
+done
+
+echo "🧹 Cleaning up unused docker images..."
 docker image prune -f
 
 echo "✅ Deployment complete!"
